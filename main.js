@@ -120,8 +120,8 @@ function scrollToSection(id) {
 // ======================== RESUME DOWNLOAD ========================
 function downloadResume() {
   const link = document.createElement('a');
-  link.href = 'resume.pdf';
-  link.download = 'Resume.pdf';
+  link.href = 'Resume.pdf';
+  link.download = 'https://t-Tayyab.github.io/portfolio/Resume.pdf';
   // If file doesn't exist, show toast
   link.onerror = () => showToast('Resume coming soon!');
   document.body.appendChild(link);
