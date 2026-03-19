@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROUGE SHOOTER &mdash; Muhammad Tayyab</title>
+  <link rel="stylesheet" href="styles.css"/>
+  
+<style>
+/* Video embed container */
+.video-embed-wrap {
+  width:100%; aspect-ratio:16/9;
+  border:1px solid hsla(205,40%,50%,0.2);
+  background:hsla(215,50%,8%,0.5);
+  margin-bottom:4rem; position:relative; overflow:hidden;
+}
+.video-embed-wrap video { width:100%; height:100%; object-fit:cover; display:block; }
+.video-embed-wrap iframe { width:100%; height:100%; border:none; display:block; }
+.video-placeholder {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:1rem;
+}
+.video-placeholder p { color:hsla(153,100%,50%,0.6); font-size:0.75rem; letter-spacing:0.15em; }
+.video-upload-hint { font-size:0.6rem !important; color:hsla(205,40%,50%,0.5) !important; letter-spacing:0.1em !important; }
+/* Metrics table */
+.metrics-table { width:100%; border-collapse:collapse; font-size:0.7rem; margin:1rem 0; }
+.metrics-table th { color:var(--primary); font-size:0.6rem; letter-spacing:0.15em; padding:0.5rem 0.75rem; border-bottom:1px solid hsla(153,100%,50%,0.3); text-align:left; }
+.metrics-table td { padding:0.5rem 0.75rem; border-bottom:1px solid hsla(205,40%,50%,0.1); color:var(--secondary); }
+.metrics-table tr:hover td { background:hsla(153,100%,50%,0.04); }
+.metrics-table .model-name { color:var(--fg); font-weight:600; }
+.metrics-table .best { color:var(--primary); }
+.model-card { border:1px solid hsla(205,40%,50%,0.2); background:hsla(215,50%,8%,0.4); padding:1.25rem; margin-bottom:1rem; }
+.model-card-title { color:var(--primary); font-size:0.7rem; letter-spacing:0.15em; margin-bottom:0.75rem; }
+.acc-bar-wrap { background:hsla(205,40%,25%,0.4); height:6px; border-radius:3px; margin-top:0.4rem; }
+.acc-bar { height:6px; border-radius:3px; background:var(--primary); box-shadow:0 0 6px hsla(153,100%,50%,0.4); transition:width 1.2s ease; }
+.class-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(7rem,1fr)); gap:0.5rem; margin-top:0.5rem; }
+.class-item { font-size:0.6rem; color:var(--secondary); }
+.class-item span { color:var(--fg); }
+/* Phone mockup for mobile apps */
+.phone-frame { width:min(300px,90%); margin:0 auto 2rem; border:2px solid hsla(153,100%,50%,0.3); border-radius:2rem; overflow:hidden; background:var(--near-black); box-shadow:0 0 30px hsla(153,100%,50%,0.15); }
+.phone-screen { aspect-ratio:9/19; overflow:hidden; }
+.phone-screen img { width:100%; height:100%; object-fit:cover; }
+
+/* Game embed */
+.game-section-label {
+  font-size:0.65rem;
+  letter-spacing:0.18em;
+  color:hsla(153,100%,50%,0.6);
+  font-family:'JetBrains Mono',monospace;
+  margin-bottom:0.75rem;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.game-section-label::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:hsla(153,100%,50%,0.15);
+}
+.game-embed-wrap {
+  width:100%;
+  aspect-ratio:16/9;
+  border:1px solid hsla(153,100%,50%,0.3);
+  background:#0a0f1a;
+  margin-bottom:4rem;
+  overflow:hidden;
+  box-shadow:0 0 40px hsla(153,100%,50%,0.08);
+  position:relative;
+  transition:box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.game-embed-wrap:hover {
+  box-shadow:0 0 60px hsla(153,100%,50%,0.18);
+  border-color:hsla(153,100%,50%,0.5);
+}
+.game-embed-wrap iframe {
+  width:100%;
+  height:100%;
+  border:none;
+  display:block;
+}
+.game-embed-hint {
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  font-size:0.6rem;
+  color:hsla(205,40%,50%,0.5);
+  letter-spacing:0.1em;
+  font-family:'JetBrains Mono',monospace;
+  margin-top:-3rem;
+  margin-bottom:3rem;
+}
+.game-embed-hint svg { flex-shrink:0; }
+
+/* Enhanced paragraph text */
+.detail-para {
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  color: hsla(205, 30%, 70%, 0.9);
+  border-left: 2px solid transparent;
+  padding-left: 1rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.3s ease, padding-left 0.3s ease;
+}
+.detail-para:hover {
+  border-left-color: hsla(153, 100%, 50%, 0.4);
+}
+
+/* Strong tags glow on hover */
+.detail-para strong {
+  color: var(--fg);
+  border-bottom: 1px solid hsla(153, 100%, 50%, 0.3);
+  padding-bottom: 1px;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.detail-para strong:hover {
+  color: hsl(153, 100%, 60%);
+  text-shadow: 0 0 8px hsla(153, 100%, 50%, 0.5);
+  cursor: default;
+}
+
+/* First paragraph dropcap */
+.detail-para:first-of-type::first-letter {
+  float: left;
+  font-size: 3rem;
+  line-height: 1;
+  color: hsl(153, 100%, 50%);
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 0.5rem;
+  text-shadow: 0 0 20px hsla(153, 100%, 50%, 0.5);
+}
+
+/* Callout box for key highlights */
+.detail-callout {
+  border: 1px solid hsla(153, 100%, 50%, 0.25);
+  background: hsla(153, 100%, 50%, 0.04);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.8rem;
+  color: hsla(153, 100%, 70%, 0.85);
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  position: relative;
+}
+.detail-callout::before {
+  content: '// HIGHLIGHT';
+  display: block;
+  font-size: 0.6rem;
+  color: hsla(153, 100%, 50%, 0.5);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+</style>
+
+</head>
+<body class="scanlines">
+<div id="scroll-progress"></div>
+<div id="page-transition"></div>
+<div id="cursor">
+  <svg id="cursor-svg" width="32" height="32" viewBox="0 0 32 32">
+    <circle cx="16" cy="16" r="1.5" fill="hsl(153,100%,50%)"/>
+    <line id="c-top"    x1="16" y1="12" x2="16" y2="7"  stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-bottom" x1="16" y1="20" x2="16" y2="25" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-left"   x1="12" y1="16" x2="7"  y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-right"  x1="20" y1="16" x2="25" y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+  </svg>
+</div>
+<canvas id="particle-canvas"></canvas>
+<nav id="navbar">
+  <div class="nav-inner">
+    <span style="color:var(--fg);font-size:0.95rem;letter-spacing:0.2em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600;">Muhammad Tayyab</span>
+    <a href="index.html" class="btn-resume" data-interactive style="text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;">&larr; BACK TO PORTFOLIO</a>
+  </div>
+</nav>
+<div style="padding:7rem 0 4rem;position:relative;z-index:10;">
+  <div class="container">
+
+    <div style="margin-bottom:3rem;">
+      <p class="section-tag">&gt;&gt; PROJECT_02 / GAME_DEV</p>
+      <h1 class="detail-h1">ROUGE SHOOTER</h1>
+      <p style="color:var(--secondary);font-size:0.875rem;margin-bottom:1.5rem;">A 2D side-scrolling action shooter built in Unity with two full levels, a multi-type enemy AI system, explosive projectile mechanics, a health and points system, and a climactic boss battle.</p>
+      <div class="detail-tags"><span class="detail-tag">Unity</span><span class="detail-tag">C#</span><span class="detail-tag">2D Platformer</span><span class="detail-tag">Game AI</span><span class="detail-tag">Physics</span></div>
+    </div>
+
+    <!-- WALKTHROUGH VIDEO -->
+    <p class="game-section-label">&gt;&gt; WALKTHROUGH_VIDEO</p>
+    <div class="game-embed-wrap">
+      <iframe
+        src="https://www.youtube.com/embed/BqbEungX5oA?si=bQrv7XHilqvO5cSy"
+        title="Rouge Shooter Walkthrough"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <p class="detail-section-label">&gt;&gt; PROJECT_OVERVIEW</p>
+        <p class="detail-para">Rouge Shooter is a fast-paced 2D side-scrolling action shooter developed in Unity, built entirely in C# with hand-crafted levels, a multi-tier enemy system, and a climactic boss battle. The game challenges players to navigate through two increasingly difficult stages — each filled with diverse enemy types, environmental hazards, and escalating combat — before facing the ultimate boss encounter at the end.</p>
+        <p class="detail-para">The <strong style="color:var(--fg)">Player System</strong> is fully featured: the character can walk and run at variable speeds, jump with gravity physics, aim and fire projectiles in both directions, and take damage from incoming fire. A dedicated <strong style="color:var(--fg)">Health System</strong> tracks the player's hit points, displayed as a health bar on the HUD. Taking damage reduces health progressively, and reaching zero triggers a game-over state with a restart option. A <strong style="color:var(--fg)">Points System</strong> rewards players for every enemy eliminated, with different enemy types awarding different point values — encouraging aggressive play and rewarding skill.</p>
+        <p class="detail-para"><strong style="color:var(--fg)">Level 1</strong> introduces the player to the core mechanics — standard enemies patrol the terrain and fire horizontal projectiles. The player must navigate platforms, eliminate threats, and progress to the level exit. <strong style="color:var(--fg)">Level 2</strong> dramatically increases the difficulty, introducing new enemy variants, tighter platform layouts, and explosive projectile enemies that launch grenades and arc-fire rockets with area-of-effect damage — forcing the player to move constantly and plan shots carefully.</p>
+        <p class="detail-para">The <strong style="color:var(--fg)">Enemy AI System</strong> features multiple distinct types: basic ground soldiers who walk patrol routes and fire straight-line bullets, explosive units that lob grenades with blast radius damage, and aerial or elevated enemies that shoot downward at angles. Each enemy type has its own health value, movement speed, fire rate, and detection range — making combat varied and requiring different strategies for each encounter. Enemy behaviours are implemented using Unity's state machine approach in C#, switching between idle, patrol, aggro, and attack states based on player proximity.</p>
+        <p class="detail-para">The <strong style="color:var(--fg)">Boss Fight</strong> is the game's climax — a multi-phase encounter with a significantly larger enemy that cycles through attack patterns: rapid-fire bullets, explosive barrages, and charge attacks. The boss has a dedicated health bar displayed prominently on screen. Defeating the boss triggers the victory sequence and displays the player's final score.</p>
+
+        <div class="detail-callout">
+          Rouge Shooter combines <strong>procedural enemy AI</strong>, <strong>multi-phase boss logic</strong>, and <strong>area-of-effect physics</strong> into a fully playable 2D shooter — demonstrating end-to-end Unity game development from concept to polished product.
+        </div>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; CHALLENGES</p>
+        <p class="detail-para">The most complex challenge was designing the enemy AI to feel responsive and fair without being frustrating. Explosive enemy projectiles required precise collision detection and blast radius logic — ensuring area-of-effect damage applied correctly to the player while not clipping through geometry. The boss multi-phase system required careful state management in C# to transition between attack modes smoothly based on health thresholds. Balancing the difficulty curve between Level 1 and Level 2 took significant playtesting to ensure the ramp felt earned, not punishing.</p>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; OUTCOME</p>
+        <p class="detail-para">Rouge Shooter is a complete, polished 2D shooter that showcases Unity game development skills across physics, AI, game state management, UI systems, and level design. The combination of varied enemy types, a scoring system, and a boss encounter gives the game genuine replay value and demonstrates the ability to take a game from concept to a fully playable product.</p>
+      </div>
+
+      <div class="detail-sidebar-box">
+          <p class="detail-section-label">&gt;&gt; KEY_FEATURES</p>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>2 fully designed side-scrolling levels</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Player: walk, run, jump, shoot mechanics</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Health system with HUD health bar</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Points system with per-enemy scoring</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Multiple enemy AI types with state machines</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Explosive / grenade-lobbing enemy variants</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Multi-phase boss encounter</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Game-over and restart system</div>
+          <hr class="sidebar-divider"/>
+          <p class="detail-section-label">&gt;&gt; TECH_STACK</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+            <span class="detail-tag">Unity</span>
+            <span class="detail-tag">C#</span>
+            <span class="detail-tag">2D Physics</span>
+            <span class="detail-tag">Sprite Animation</span>
+            <span class="detail-tag">Enemy AI</span>
+            <span class="detail-tag">Level Design</span>
+          </div>
+          <hr class="sidebar-divider"/>
+          <p class="detail-section-label">&gt;&gt; LINKS</p>
+          <a href="https://muhammad-tayyab.itch.io/rouge-shooter" target="_blank" rel="noopener noreferrer"
+             class="detail-link-btn" data-interactive style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            PLAY ON ITCH.IO
+          </a>
+          <a href="https://drive.google.com/drive/folders/1QK9afebbHxIRPH10lAcZbcYwQ93oLPBu?usp=sharing" target="_blank" rel="noopener noreferrer"
+             class="detail-link-btn" data-interactive style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            VIEW SOURCE CODE
+          </a>
+      </div>
+    </div>
+
+    <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid hsla(205,40%,50%,0.2);">
+      <a href="index.html" style="font-size:0.75rem;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:0.15em;text-decoration:none;" data-interactive onmouseover="this.style.textShadow='0 0 10px hsla(153,100%,50%,0.5)'" onmouseout="this.style.textShadow='none'">&lt;&lt; RETURN TO ALL PROJECTS</a>
+    </div>
+  </div>
+</div>
+<button id="back-to-top" data-interactive title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+<script>
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('scroll-progress').style.width=(d>0?(window.scrollY/d)*100:0)+'%';
+  document.getElementById('back-to-top').classList.toggle('visible',window.scrollY>400);
+},{passive:true});
+(function(){const c=document.getElementById('particle-canvas'),x=c.getContext('2d');let p=[];function r(){c.width=window.innerWidth;c.height=window.innerHeight;}r();window.addEventListener('resize',r,{passive:true});const n=Math.min(60,Math.floor(window.innerWidth/22));for(let i=0;i<n;i++)p.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,s:Math.random()*1.5+.5});function d(){x.clearRect(0,0,c.width,c.height);p.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0)a.x=c.width;if(a.x>c.width)a.x=0;if(a.y<0)a.y=c.height;if(a.y>c.height)a.y=0;x.beginPath();x.arc(a.x,a.y,a.s,0,Math.PI*2);x.fillStyle='rgba(0,255,136,0.3)';x.fill();for(let j=i+1;j<p.length;j++){const dx=a.x-p[j].x,dy=a.y-p[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){x.beginPath();x.moveTo(a.x,a.y);x.lineTo(p[j].x,p[j].y);x.strokeStyle=`rgba(0,255,136,${.08*(1-dist/120)})`;x.lineWidth=.5;x.stroke();}}});requestAnimationFrame(d);}d();})();
+(function(){const cur=document.getElementById('cursor'),svg=document.getElementById('cursor-svg');let h=false;window.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});window.addEventListener('mouseover',e=>{const nh=!!e.target.closest('a,button,[role="button"],[data-interactive]');if(nh===h)return;h=nh;const sz=h?48:32,ll=h?8:5,c=sz/2;svg.setAttribute('width',sz);svg.setAttribute('height',sz);svg.setAttribute('viewBox',`0 0 ${sz} ${sz}`);svg.querySelector('circle').setAttribute('cx',c);svg.querySelector('circle').setAttribute('cy',c);const co={top:[c,c-4,c,c-4-ll],bottom:[c,c+4,c,c+4+ll],left:[c-4,c,c-4-ll,c],right:[c+4,c,c+4+ll,c]};Object.entries(co).forEach(([id,[x1,y1,x2,y2]])=>{const el=document.getElementById('c-'+id);el.setAttribute('x1',x1);el.setAttribute('y1',y1);el.setAttribute('x2',x2);el.setAttribute('y2',y2);});});})();
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('page-transition');
+  ov.style.opacity='1'; ov.style.transition='opacity 0.4s ease';
+  requestAnimationFrame(()=>{ ov.style.opacity='0'; });
+  document.querySelectorAll('.acc-bar[data-width]').forEach(b=>{
+    setTimeout(()=>{ b.style.width=b.dataset.width; },400);
+  });
+});
+document.querySelectorAll('a[href="index.html"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const ov=document.getElementById('page-transition');
+    ov.style.transition='opacity 0.35s ease'; ov.style.opacity='1';
+    setTimeout(()=>window.location.href='index.html',360);
+  });
+});
+</script>
+</body>
+</html>

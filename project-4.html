@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROAMIFY &mdash; Muhammad Tayyab</title>
+  <link rel="stylesheet" href="styles.css"/>
+  
+<style>
+/* Video embed container */
+.video-embed-wrap {
+  width:100%; aspect-ratio:16/9;
+  border:1px solid hsla(205,40%,50%,0.2);
+  background:hsla(215,50%,8%,0.5);
+  margin-bottom:4rem; position:relative; overflow:hidden;
+}
+.video-embed-wrap video { width:100%; height:100%; object-fit:cover; display:block; }
+.video-embed-wrap iframe { width:100%; height:100%; border:none; display:block; }
+.video-placeholder {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:1rem;
+}
+.video-placeholder p { color:hsla(153,100%,50%,0.6); font-size:0.75rem; letter-spacing:0.15em; }
+.video-upload-hint { font-size:0.6rem !important; color:hsla(205,40%,50%,0.5) !important; letter-spacing:0.1em !important; }
+/* Metrics table */
+.metrics-table { width:100%; border-collapse:collapse; font-size:0.7rem; margin:1rem 0; }
+.metrics-table th { color:var(--primary); font-size:0.6rem; letter-spacing:0.15em; padding:0.5rem 0.75rem; border-bottom:1px solid hsla(153,100%,50%,0.3); text-align:left; }
+.metrics-table td { padding:0.5rem 0.75rem; border-bottom:1px solid hsla(205,40%,50%,0.1); color:var(--secondary); }
+.metrics-table tr:hover td { background:hsla(153,100%,50%,0.04); }
+.metrics-table .model-name { color:var(--fg); font-weight:600; }
+.metrics-table .best { color:var(--primary); }
+.model-card { border:1px solid hsla(205,40%,50%,0.2); background:hsla(215,50%,8%,0.4); padding:1.25rem; margin-bottom:1rem; }
+.model-card-title { color:var(--primary); font-size:0.7rem; letter-spacing:0.15em; margin-bottom:0.75rem; }
+.acc-bar-wrap { background:hsla(205,40%,25%,0.4); height:6px; border-radius:3px; margin-top:0.4rem; }
+.acc-bar { height:6px; border-radius:3px; background:var(--primary); box-shadow:0 0 6px hsla(153,100%,50%,0.4); transition:width 1.2s ease; }
+.class-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(7rem,1fr)); gap:0.5rem; margin-top:0.5rem; }
+.class-item { font-size:0.6rem; color:var(--secondary); }
+.class-item span { color:var(--fg); }
+/* Phone mockup for mobile apps */
+.phone-frame { width:min(300px,90%); margin:0 auto 2rem; border:2px solid hsla(153,100%,50%,0.3); border-radius:2rem; overflow:hidden; background:var(--near-black); box-shadow:0 0 30px hsla(153,100%,50%,0.15); }
+.phone-screen { aspect-ratio:9/19; overflow:hidden; }
+.phone-screen img { width:100%; height:100%; object-fit:cover; }
+
+/* Enhanced paragraph text */
+.detail-para {
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  color: hsla(205, 30%, 70%, 0.9);
+  border-left: 2px solid transparent;
+  padding-left: 1rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.3s ease, padding-left 0.3s ease;
+}
+.detail-para:hover {
+  border-left-color: hsla(153, 100%, 50%, 0.4);
+}
+
+/* Strong tags glow on hover */
+.detail-para strong {
+  color: var(--fg);
+  border-bottom: 1px solid hsla(153, 100%, 50%, 0.3);
+  padding-bottom: 1px;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.detail-para strong:hover {
+  color: hsl(153, 100%, 60%);
+  text-shadow: 0 0 8px hsla(153, 100%, 50%, 0.5);
+  cursor: default;
+}
+
+/* First paragraph dropcap */
+.detail-para:first-of-type::first-letter {
+  float: left;
+  font-size: 3rem;
+  line-height: 1;
+  color: hsl(153, 100%, 50%);
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 0.5rem;
+  text-shadow: 0 0 20px hsla(153, 100%, 50%, 0.5);
+}
+
+/* Callout box for key highlights */
+.detail-callout {
+  border: 1px solid hsla(153, 100%, 50%, 0.25);
+  background: hsla(153, 100%, 50%, 0.04);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.8rem;
+  color: hsla(153, 100%, 70%, 0.85);
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  position: relative;
+}
+.detail-callout::before {
+  content: '// HIGHLIGHT';
+  display: block;
+  font-size: 0.6rem;
+  color: hsla(153, 100%, 50%, 0.5);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+</style>
+
+</head>
+<body class="scanlines">
+<div id="scroll-progress"></div>
+<div id="page-transition"></div>
+<div id="cursor">
+  <svg id="cursor-svg" width="32" height="32" viewBox="0 0 32 32">
+    <circle cx="16" cy="16" r="1.5" fill="hsl(153,100%,50%)"/>
+    <line id="c-top"    x1="16" y1="12" x2="16" y2="7"  stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-bottom" x1="16" y1="20" x2="16" y2="25" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-left"   x1="12" y1="16" x2="7"  y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-right"  x1="20" y1="16" x2="25" y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+  </svg>
+</div>
+<canvas id="particle-canvas"></canvas>
+<nav id="navbar">
+  <div class="nav-inner">
+    <span style="color:var(--fg);font-size:0.95rem;letter-spacing:0.2em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600;">Muhammad Tayyab</span>
+    <a href="index.html" class="btn-resume" data-interactive style="text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;">&larr; BACK TO PORTFOLIO</a>
+  </div>
+</nav>
+<div style="padding:7rem 0 4rem;position:relative;z-index:10;">
+  <div class="container">
+<div style="margin-bottom:3rem;">
+      <p class="section-tag">&gt;&gt; PROJECT_04 / MOBILE</p>
+      <h1 class="detail-h1">ROAMIFY</h1>
+      <p style="color:var(--secondary);font-size:0.875rem;margin-bottom:1.5rem;">A native Android trip planning app with destination discovery, location search, accommodation booking, booking management, and a full user account system built in Android Studio.</p>
+      <div class="detail-tags"><span class="detail-tag">Android</span><span class="detail-tag">Android Studio</span><span class="detail-tag">Java</span><span class="detail-tag">XML Layouts</span><span class="detail-tag">Mobile UI</span></div>
+    </div>
+
+    <div class="video-embed-wrap">
+      <iframe src="https://drive.google.com/file/d/1kmluYOhmgD1wAbEdT1X5GndC3IlwZLuO/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <p class="detail-section-label">&gt;&gt; PROJECT_OVERVIEW</p>
+        <p class="detail-para">Roamify is a native Android trip planning application built in Android Studio, designed to make travel planning effortless, visual, and enjoyable. The app combines destination discovery, accommodation search, and personal booking management into a single cohesive experience — giving travellers everything they need to plan a trip from idea to itinerary, all within a clean and intuitive mobile interface.</p>
+        <p class="detail-para">The <strong>Home Screen</strong> greets users with a curated feed of cool, trending, and must-visit destinations from around the world. Destinations are presented as visually rich cards featuring cover imagery, country, and a brief highlight. A <strong>More to Explore</strong> section surfaces lesser-known destinations sorted by region, theme (adventure, cultural, beach, mountain), and traveller rating — helping users discover places they might not have considered.</p>
+        <p class="detail-para">The <strong>Search Functionality</strong> allows users to search for any location worldwide — entering a city, country, or landmark returns relevant destination results with key travel information. The search is fast and surfacing-focused, giving users a snapshot of each location including climate, top attractions, and available accommodation options to help with initial planning decisions.</p>
+        <p class="detail-para">The <strong>Stay Option</strong> lets users browse accommodation options for their chosen destination — hotels, guesthouses, and rentals are listed with ratings, price ranges, and available dates. Users can select a property and proceed to a booking confirmation flow, which saves the booking to their account for future reference.</p>
+        <p class="detail-para">The <strong>My Bookings</strong> section provides a personal dashboard where users can view all their confirmed trip bookings — destination, dates, accommodation, and status — in a clear timeline layout. This acts as a personal travel record and upcoming trip manager. The <strong>Profile Page</strong> handles account details, preferences, and trip history, while the <strong>Authentication System</strong> supports full sign-up and login, ensuring all bookings and preferences are tied securely to the user's account.</p>
+
+        <div class="detail-callout">
+          Roamify covers the full travel planning arc in a single native app — from inspiration and destination discovery, through accommodation browsing and booking, to a personal trip management dashboard. Built entirely in Android Studio with Java and XML, it demonstrates real-world mobile UI/UX, data persistence, user authentication, and multi-screen navigation.
+        </div>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; CHALLENGES</p>
+        <p class="detail-para">Building a smooth, visually rich scrolling experience in Android Studio — particularly the destination card feed on the home screen — required efficient <strong>RecyclerView</strong> implementation with image loading optimised to avoid jank. Designing the booking flow to be simple (minimum taps from discover to confirmed) while still capturing all necessary information required multiple UI iterations. Structuring the data layer to keep bookings, user profiles, and destination data cleanly separated and efficiently queryable was a key architectural challenge.</p>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; OUTCOME</p>
+        <p class="detail-para">Roamify delivers a genuinely useful travel companion that covers the full planning arc — from inspiration and discovery through to booking confirmation and trip management. The project demonstrates native Android development capability including <strong>UI/UX design</strong>, <strong>data persistence</strong>, <strong>user authentication</strong>, and <strong>multi-screen navigation</strong> in a real-world application context.</p>
+      </div>
+
+      <div class="detail-sidebar-box">
+          <p class="detail-section-label">&gt;&gt; KEY_FEATURES</p>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Curated destination discovery feed</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>More to Explore section by theme &amp; region</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Location search with destination details</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Stay / accommodation browsing &amp; booking</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>My Bookings — trip management dashboard</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>User profile page with trip history</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Full login &amp; sign-up authentication</div>
+          <div class="feature-item"><span class="feature-arrow">&#9656;</span>Clean, native Android UI with RecyclerViews</div>
+          <hr class="sidebar-divider"/>
+          <p class="detail-section-label">&gt;&gt; TECH_STACK</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+            <span class="detail-tag">Android Studio</span>
+            <span class="detail-tag">Java</span>
+            <span class="detail-tag">XML Layouts</span>
+            <span class="detail-tag">RecyclerView</span>
+            <span class="detail-tag">SQLite / Firebase</span>
+            <span class="detail-tag">Material Design</span>
+          </div>
+          <hr class="sidebar-divider"/>
+          <p class="detail-section-label">&gt;&gt; LINKS</p>
+          <a href="https://drive.google.com/file/d/1kmluYOhmgD1wAbEdT1X5GndC3IlwZLuO/view?usp=sharing"
+            target="_blank" rel="noopener noreferrer"
+            class="detail-link-btn" data-interactive style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            VIEW LIVE PROJECT
+          </a>
+          <a href="https://github.com/t-Tayyab/Roamifiy"
+            target="_blank" rel="noopener noreferrer"
+            class="detail-link-btn" data-interactive style="text-decoration:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            VIEW SOURCE CODE
+          </a>
+        </div>
+    </div>
+
+    <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid hsla(205,40%,50%,0.2);">
+      <a href="index.html" style="font-size:0.75rem;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:0.15em;text-decoration:none;" data-interactive onmouseover="this.style.textShadow='0 0 10px hsla(153,100%,50%,0.5)'" onmouseout="this.style.textShadow='none'">&lt;&lt; RETURN TO ALL PROJECTS</a>
+    </div>
+  </div>
+</div>
+<button id="back-to-top" data-interactive title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+<script>
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('scroll-progress').style.width=(d>0?(window.scrollY/d)*100:0)+'%';
+  document.getElementById('back-to-top').classList.toggle('visible',window.scrollY>400);
+},{passive:true});
+(function(){const c=document.getElementById('particle-canvas'),x=c.getContext('2d');let p=[];function r(){c.width=window.innerWidth;c.height=window.innerHeight;}r();window.addEventListener('resize',r,{passive:true});const n=Math.min(60,Math.floor(window.innerWidth/22));for(let i=0;i<n;i++)p.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,s:Math.random()*1.5+.5});function d(){x.clearRect(0,0,c.width,c.height);p.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0)a.x=c.width;if(a.x>c.width)a.x=0;if(a.y<0)a.y=c.height;if(a.y>c.height)a.y=0;x.beginPath();x.arc(a.x,a.y,a.s,0,Math.PI*2);x.fillStyle='rgba(0,255,136,0.3)';x.fill();for(let j=i+1;j<p.length;j++){const dx=a.x-p[j].x,dy=a.y-p[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){x.beginPath();x.moveTo(a.x,a.y);x.lineTo(p[j].x,p[j].y);x.strokeStyle=`rgba(0,255,136,${.08*(1-dist/120)})`;x.lineWidth=.5;x.stroke();}}});requestAnimationFrame(d);}d();})();
+(function(){const cur=document.getElementById('cursor'),svg=document.getElementById('cursor-svg');let h=false;window.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});window.addEventListener('mouseover',e=>{const nh=!!e.target.closest('a,button,[role="button"],[data-interactive]');if(nh===h)return;h=nh;const sz=h?48:32,ll=h?8:5,c=sz/2;svg.setAttribute('width',sz);svg.setAttribute('height',sz);svg.setAttribute('viewBox',`0 0 ${sz} ${sz}`);svg.querySelector('circle').setAttribute('cx',c);svg.querySelector('circle').setAttribute('cy',c);const co={top:[c,c-4,c,c-4-ll],bottom:[c,c+4,c,c+4+ll],left:[c-4,c,c-4-ll,c],right:[c+4,c,c+4+ll,c]};Object.entries(co).forEach(([id,[x1,y1,x2,y2]])=>{const el=document.getElementById('c-'+id);el.setAttribute('x1',x1);el.setAttribute('y1',y1);el.setAttribute('x2',x2);el.setAttribute('y2',y2);});});})();
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('page-transition');
+  ov.style.opacity='1'; ov.style.transition='opacity 0.4s ease';
+  requestAnimationFrame(()=>{ ov.style.opacity='0'; });
+  document.querySelectorAll('.acc-bar[data-width]').forEach(b=>{
+    setTimeout(()=>{ b.style.width=b.dataset.width; },400);
+  });
+});
+document.querySelectorAll('a[href="index.html"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const ov=document.getElementById('page-transition');
+    ov.style.transition='opacity 0.35s ease'; ov.style.opacity='1';
+    setTimeout(()=>window.location.href='index.html',360);
+  });
+});
+</script>
+</body>
+</html>

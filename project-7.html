@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FASHION-MNIST &mdash; Muhammad Tayyab</title>
+  <link rel="stylesheet" href="styles.css"/>
+
+<style>
+/* Video embed container */
+.video-embed-wrap {
+  width:100%; aspect-ratio:16/9;
+  border:1px solid hsla(205,40%,50%,0.2);
+  background:hsla(215,50%,8%,0.5);
+  margin-bottom:4rem; position:relative; overflow:hidden;
+}
+.video-embed-wrap video { width:100%; height:100%; object-fit:cover; display:block; }
+.video-embed-wrap iframe { width:100%; height:100%; border:none; display:block; }
+/* Metrics table */
+.metrics-table { width:100%; border-collapse:collapse; font-size:0.7rem; margin:1rem 0; }
+.metrics-table th { color:var(--primary); font-size:0.6rem; letter-spacing:0.15em; padding:0.5rem 0.75rem; border-bottom:1px solid hsla(153,100%,50%,0.3); text-align:left; }
+.metrics-table td { padding:0.5rem 0.75rem; border-bottom:1px solid hsla(205,40%,50%,0.1); color:var(--secondary); }
+.metrics-table tr:hover td { background:hsla(153,100%,50%,0.04); }
+.metrics-table .model-name { color:var(--fg); font-weight:600; }
+.metrics-table .best { color:var(--primary); }
+.model-card { border:1px solid hsla(205,40%,50%,0.2); background:hsla(215,50%,8%,0.4); padding:1.25rem; margin-bottom:1rem; }
+.model-card-title { color:var(--primary); font-size:0.7rem; letter-spacing:0.15em; margin-bottom:0.75rem; }
+.acc-bar-wrap { background:hsla(205,40%,25%,0.4); height:6px; border-radius:3px; margin-top:0.4rem; }
+.acc-bar { height:6px; border-radius:3px; background:var(--primary); box-shadow:0 0 6px hsla(153,100%,50%,0.4); transition:width 1.2s ease; }
+.class-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(7rem,1fr)); gap:0.5rem; margin-top:0.5rem; }
+.class-item { font-size:0.6rem; color:var(--secondary); }
+.class-item span { color:var(--fg); }
+
+/* ── Text Enhancement Styles (matching all other project pages) ── */
+.detail-para {
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  color: hsla(205, 30%, 70%, 0.9);
+  border-left: 2px solid transparent;
+  padding-left: 1rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.3s ease, padding-left 0.3s ease;
+}
+.detail-para:hover {
+  border-left-color: hsla(153, 100%, 50%, 0.4);
+}
+
+/* Strong tags glow on hover */
+.detail-para strong {
+  color: var(--fg);
+  border-bottom: 1px solid hsla(153, 100%, 50%, 0.3);
+  padding-bottom: 1px;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.detail-para strong:hover {
+  color: hsl(153, 100%, 60%);
+  text-shadow: 0 0 8px hsla(153, 100%, 50%, 0.5);
+  cursor: default;
+}
+
+/* First paragraph dropcap */
+.detail-para:first-of-type::first-letter {
+  float: left;
+  font-size: 3rem;
+  line-height: 1;
+  color: hsl(153, 100%, 50%);
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 0.5rem;
+  text-shadow: 0 0 20px hsla(153, 100%, 50%, 0.5);
+}
+
+/* Callout box for key highlights */
+.detail-callout {
+  border: 1px solid hsla(153, 100%, 50%, 0.25);
+  background: hsla(153, 100%, 50%, 0.04);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.8rem;
+  color: hsla(153, 100%, 70%, 0.85);
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  position: relative;
+}
+.detail-callout::before {
+  content: '// HIGHLIGHT';
+  display: block;
+  font-size: 0.6rem;
+  color: hsla(153, 100%, 50%, 0.5);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+</style>
+
+</head>
+<body class="scanlines">
+<div id="scroll-progress"></div>
+<div id="page-transition"></div>
+<div id="cursor">
+  <svg id="cursor-svg" width="32" height="32" viewBox="0 0 32 32">
+    <circle cx="16" cy="16" r="1.5" fill="hsl(153,100%,50%)"/>
+    <line id="c-top"    x1="16" y1="12" x2="16" y2="7"  stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-bottom" x1="16" y1="20" x2="16" y2="25" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-left"   x1="12" y1="16" x2="7"  y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-right"  x1="20" y1="16" x2="25" y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+  </svg>
+</div>
+<canvas id="particle-canvas"></canvas>
+<nav id="navbar">
+  <div class="nav-inner">
+    <span style="color:var(--fg);font-size:0.95rem;letter-spacing:0.2em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600;">Muhammad Tayyab</span>
+    <a href="index.html" class="btn-resume" data-interactive style="text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;">&larr; BACK TO PORTFOLIO</a>
+  </div>
+</nav>
+<div style="padding:7rem 0 4rem;position:relative;z-index:10;">
+  <div class="container">
+    <div style="margin-bottom:3rem;">
+      <p class="section-tag">&gt;&gt; PROJECT_07 / ML_DATA</p>
+      <h1 class="detail-h1">FASHION-MNIST CLASSIFIER</h1>
+      <p style="color:var(--secondary);font-size:0.875rem;margin-bottom:1.5rem;">A complete ML pipeline classifying 10 fashion categories from the Fashion-MNIST dataset — featuring full EDA, three trained models (best: Random Forest 88.01%), per-class analysis, and a live Gradio interactive app.</p>
+      <div class="detail-tags"><span class="detail-tag">Python</span><span class="detail-tag">Scikit-learn</span><span class="detail-tag">Gradio</span><span class="detail-tag">Pandas</span><span class="detail-tag">NumPy</span><span class="detail-tag">Kaggle</span><span class="detail-tag">Machine Learning</span></div>
+    </div>
+
+    <div class="video-embed-wrap">
+      <iframe src="https://drive.google.com/file/d/1S84cKX4a53-VTR1ON6hNTyX8EF7z23xt/preview" title="Fashion-MNIST Walkthrough" frameborder="0" allow="autoplay" allowfullscreen></iframe>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <p class="detail-section-label">&gt;&gt; PROJECT_OVERVIEW</p>
+        <p class="detail-para">Fashion-MNIST Image Classification is a comprehensive machine learning project hosted as a reproducible Kaggle notebook. The project tackles the multi-class image classification problem using the Fashion-MNIST dataset — 70,000 grayscale 28×28 images across 10 clothing categories — progressing through a full end-to-end ML pipeline from exploratory data analysis to a live interactive Gradio web application where users can test the trained model in real time.</p>
+        <p class="detail-para">The notebook follows a rigorous, structured methodology: <strong>Section 1</strong> imports all required libraries (NumPy, Pandas, Matplotlib, Seaborn, Scikit-learn, Gradio). <strong>Section 2</strong> loads the Fashion-MNIST dataset and confirms structure — 60,000 training and 10,000 test samples across 10 classes. <strong>Section 3 (EDA)</strong> performs thorough exploratory analysis: class distribution charts, sample image grids per category, pixel intensity distributions, and heatmaps revealing visual patterns across the dataset.</p>
+        <p class="detail-para"><strong>Sections 4–6</strong> handle the data pipeline: pixel normalisation (scaling 0–255 to 0–1), flattening the 28×28 image matrices into 784-feature vectors for the classical ML models, and performing a stratified 80/20 train-test split across all 10 classes to ensure balanced representation in both sets.</p>
+        <p class="detail-para"><strong>Section 7</strong> is the modelling core — three distinct algorithms are trained and evaluated: <strong>Logistic Regression</strong>, <strong>K-Nearest Neighbors</strong>, and <strong>Random Forest</strong>. Each model is assessed with accuracy, precision, recall, and F1-score, plus a full per-class classification report across all 10 clothing categories. Charts are generated for each model's confusion matrix and per-class performance breakdown.</p>
+        <p class="detail-para">The <strong>Random Forest model achieved the highest accuracy at 88.01%</strong>, outperforming both Logistic Regression (85.26%) and K-Nearest Neighbors (85.45%). The strongest-performing classes were Trouser (0.98 F1), Bag (0.97 F1), and Sandal (0.97 F1), while Shirt proved the most challenging category across all three models. <strong>Section 12</strong> concludes with a deployed Gradio interactive app where users can upload any fashion image and receive an instant classification prediction from the trained model.</p>
+
+        <div class="detail-callout">
+          The <strong>Random Forest at 88.01% accuracy</strong> and the <strong>Gradio interactive deployment</strong> are the twin highlights — rigorous multi-model benchmarking combined with a live, usable product that takes the trained pipeline beyond a static notebook into a real-world classification tool.
+        </div>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; CHALLENGES</p>
+        <p class="detail-para">The most analytically interesting challenge was the persistent underperformance on the <strong>Shirt class</strong> — all three models struggled with it, reflecting the genuine visual ambiguity between shirts, T-shirts, and pullovers in greyscale 28×28 pixel space. Deciding which classical ML approach to use required understanding the trade-offs: Logistic Regression is fast and interpretable, KNN is non-parametric but computationally expensive at scale, and Random Forest handles non-linearity well but requires careful hyperparameter tuning. Building the Gradio app required integrating the trained model pipeline with a preprocessing function that correctly handles new input images through the same normalisation and flattening steps used during training.</p>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; OUTCOME</p>
+        <p class="detail-para">This project delivers a fully reproducible, well-documented ML pipeline that takes raw image data from exploration through to a deployed interactive application. The <strong>88.01% Random Forest accuracy</strong> on 10-class image classification demonstrates strong feature engineering and model selection skills, and the Gradio deployment shows the ability to take a trained model into a usable product rather than leaving it as a static notebook exercise.</p>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; MODEL_COMPARISON</p>
+        <table class="metrics-table">
+          <thead><tr><th>MODEL</th><th>ACCURACY</th><th>PRECISION</th><th>RECALL</th><th>F1-SCORE</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Logistic Regression</td><td>85.26%</td><td>0.8516</td><td>0.8526</td><td>0.8519</td></tr>
+            <tr><td class="model-name">K-Nearest Neighbors</td><td>85.45%</td><td>0.8577</td><td>0.8545</td><td>0.8540</td></tr>
+            <tr><td class="model-name best">Random Forest ★ Best</td><td class="best">88.01%</td><td class="best">0.8795</td><td class="best">0.8801</td><td class="best">0.8786</td></tr>
+          </tbody>
+        </table>
+
+        <p class="detail-section-label" style="margin-top:2rem;">&gt;&gt; ACCURACY_BARS</p>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem;">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.65rem;"><span style="color:var(--fg)">Logistic Regression</span><span style="color:var(--primary)">85.26%</span></div><div class="acc-bar-wrap"><div class="acc-bar" data-width="85.26%" style="width:0%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.65rem;"><span style="color:var(--fg)">K-Nearest Neighbors</span><span style="color:var(--primary)">85.45%</span></div><div class="acc-bar-wrap"><div class="acc-bar" data-width="85.45%" style="width:0%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.65rem;"><span style="color:var(--fg);font-weight:600;">Random Forest</span><span style="color:var(--primary);font-weight:600;">88.01% ★</span></div><div class="acc-bar-wrap"><div class="acc-bar" data-width="88.01%" style="width:0%;box-shadow:0 0 10px hsla(153,100%,50%,0.6);"></div></div></div>
+        </div>
+
+        <p class="detail-section-label" style="margin-top:2rem;">&gt;&gt; PER_CLASS_PERFORMANCE (Random Forest — Best Model)</p>
+        <table class="metrics-table" style="margin-bottom:2rem;">
+          <thead><tr><th>CLASS</th><th>PRECISION</th><th>RECALL</th><th>F1</th><th>SUPPORT</th></tr></thead>
+          <tbody>
+            <tr><td>T-shirt/Top</td><td>0.81</td><td>0.86</td><td>0.84</td><td>1,200</td></tr>
+            <tr><td>Trouser</td><td>0.99</td><td>0.97</td><td class="best">0.98</td><td>1,200</td></tr>
+            <tr><td>Pullover</td><td>0.78</td><td>0.81</td><td>0.79</td><td>1,200</td></tr>
+            <tr><td>Dress</td><td>0.88</td><td>0.91</td><td>0.90</td><td>1,200</td></tr>
+            <tr><td>Coat</td><td>0.76</td><td>0.83</td><td>0.79</td><td>1,200</td></tr>
+            <tr><td>Sandal</td><td>0.98</td><td>0.96</td><td>0.97</td><td>1,200</td></tr>
+            <tr><td>Shirt</td><td>0.74</td><td>0.59</td><td>0.66</td><td>1,200</td></tr>
+            <tr><td>Sneaker</td><td>0.93</td><td>0.95</td><td>0.94</td><td>1,200</td></tr>
+            <tr><td>Bag</td><td>0.97</td><td>0.97</td><td>0.97</td><td>1,200</td></tr>
+            <tr><td>Ankle Boot</td><td>0.95</td><td>0.94</td><td>0.95</td><td>1,200</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="detail-sidebar-box">
+        <p class="detail-section-label">&gt;&gt; KEY_FEATURES</p>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Full EDA with class distribution &amp; image grids</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Data normalisation &amp; 784-feature flattening</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Stratified 80/20 train-test split</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Logistic Regression — 85.26% accuracy</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>K-Nearest Neighbors — 85.45% accuracy</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Random Forest — 88.01% accuracy (best)</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Per-class F1 analysis across 10 categories</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Confusion matrix visualisations</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Gradio interactive classification app</div>
+        <hr class="sidebar-divider"/>
+        <p class="detail-section-label">&gt;&gt; TECH_STACK</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+          <span class="detail-tag">Python</span>
+          <span class="detail-tag">Scikit-learn</span>
+          <span class="detail-tag">Random Forest</span>
+          <span class="detail-tag">Logistic Regression</span>
+          <span class="detail-tag">KNN</span>
+          <span class="detail-tag">Gradio</span>
+          <span class="detail-tag">Pandas</span>
+          <span class="detail-tag">NumPy</span>
+          <span class="detail-tag">Matplotlib</span>
+        </div>
+        <hr class="sidebar-divider"/>
+        <p class="detail-section-label">&gt;&gt; LINKS</p>
+        <a href="https://drive.google.com/file/d/1sSQHpXJQqOVbaZWsmTb13K0uWrcwbZc4/view?usp=sharing"
+          target="_blank" rel="noopener noreferrer"
+          class="detail-link-btn" data-interactive style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          VIEW LIVE PROJECT
+        </a>
+        <a href="https://drive.google.com/file/d/1sSQHpXJQqOVbaZWsmTb13K0uWrcwbZc4/view?usp=sharing"
+          target="_blank" rel="noopener noreferrer"
+          class="detail-link-btn" data-interactive style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          VIEW SOURCE CODE
+        </a>
+      </div>
+    </div>
+
+    <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid hsla(205,40%,50%,0.2);">
+      <a href="index.html" style="font-size:0.75rem;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:0.15em;text-decoration:none;" data-interactive onmouseover="this.style.textShadow='0 0 10px hsla(153,100%,50%,0.5)'" onmouseout="this.style.textShadow='none'">&lt;&lt; RETURN TO ALL PROJECTS</a>
+    </div>
+  </div>
+</div>
+<button id="back-to-top" data-interactive title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+<script>
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('scroll-progress').style.width=(d>0?(window.scrollY/d)*100:0)+'%';
+  document.getElementById('back-to-top').classList.toggle('visible',window.scrollY>400);
+},{passive:true});
+(function(){const c=document.getElementById('particle-canvas'),x=c.getContext('2d');let p=[];function r(){c.width=window.innerWidth;c.height=window.innerHeight;}r();window.addEventListener('resize',r,{passive:true});const n=Math.min(60,Math.floor(window.innerWidth/22));for(let i=0;i<n;i++)p.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,s:Math.random()*1.5+.5});function d(){x.clearRect(0,0,c.width,c.height);p.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0)a.x=c.width;if(a.x>c.width)a.x=0;if(a.y<0)a.y=c.height;if(a.y>c.height)a.y=0;x.beginPath();x.arc(a.x,a.y,a.s,0,Math.PI*2);x.fillStyle='rgba(0,255,136,0.3)';x.fill();for(let j=i+1;j<p.length;j++){const dx=a.x-p[j].x,dy=a.y-p[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){x.beginPath();x.moveTo(a.x,a.y);x.lineTo(p[j].x,p[j].y);x.strokeStyle=`rgba(0,255,136,${.08*(1-dist/120)})`;x.lineWidth=.5;x.stroke();}}});requestAnimationFrame(d);}d();})();
+(function(){const cur=document.getElementById('cursor'),svg=document.getElementById('cursor-svg');let h=false;window.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});window.addEventListener('mouseover',e=>{const nh=!!e.target.closest('a,button,[role="button"],[data-interactive]');if(nh===h)return;h=nh;const sz=h?48:32,ll=h?8:5,c=sz/2;svg.setAttribute('width',sz);svg.setAttribute('height',sz);svg.setAttribute('viewBox',`0 0 ${sz} ${sz}`);svg.querySelector('circle').setAttribute('cx',c);svg.querySelector('circle').setAttribute('cy',c);const co={top:[c,c-4,c,c-4-ll],bottom:[c,c+4,c,c+4+ll],left:[c-4,c,c-4-ll,c],right:[c+4,c,c+4+ll,c]};Object.entries(co).forEach(([id,[x1,y1,x2,y2]])=>{const el=document.getElementById('c-'+id);el.setAttribute('x1',x1);el.setAttribute('y1',y1);el.setAttribute('x2',x2);el.setAttribute('y2',y2);});});})();
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('page-transition');
+  ov.style.opacity='1'; ov.style.transition='opacity 0.4s ease';
+  requestAnimationFrame(()=>{ ov.style.opacity='0'; });
+  document.querySelectorAll('.acc-bar[data-width]').forEach(b=>{
+    setTimeout(()=>{ b.style.width=b.dataset.width; },400);
+  });
+});
+document.querySelectorAll('a[href="index.html"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const ov=document.getElementById('page-transition');
+    ov.style.transition='opacity 0.35s ease'; ov.style.opacity='1';
+    setTimeout(()=>window.location.href='index.html',360);
+  });
+});
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FASHION-MNIST &mdash; Muhammad Tayyab</title>
+  <link rel="stylesheet" href="styles.css"/>
+
+<style>
+/* Video embed container */
+.video-embed-wrap {
+  width:100%; aspect-ratio:16/9;
+  border:1px solid hsla(205,40%,50%,0.2);
+  background:hsla(215,50%,8%,0.5);
+  margin-bottom:4rem; position:relative; overflow:hidden;
+}
+.video-embed-wrap video { width:100%; height:100%; object-fit:cover; display:block; }
+.video-embed-wrap iframe { width:100%; height:100%; border:none; display:block; }
+/* Metrics table */
+.metrics-table { width:100%; border-collapse:collapse; font-size:0.7rem; margin:1rem 0; }
+.metrics-table th { color:var(--primary); font-size:0.6rem; letter-spacing:0.15em; padding:0.5rem 0.75rem; border-bottom:1px solid hsla(153,100%,50%,0.3); text-align:left; }
+.metrics-table td { padding:0.5rem 0.75rem; border-bottom:1px solid hsla(205,40%,50%,0.1); color:var(--secondary); }
+.metrics-table tr:hover td { background:hsla(153,100%,50%,0.04); }
+.metrics-table .model-name { color:var(--fg); font-weight:600; }
+.metrics-table .best { color:var(--primary); }
+.model-card { border:1px solid hsla(205,40%,50%,0.2); background:hsla(215,50%,8%,0.4); padding:1.25rem; margin-bottom:1rem; }
+.model-card-title { color:var(--primary); font-size:0.7rem; letter-spacing:0.15em; margin-bottom:0.75rem; }
+.acc-bar-wrap { background:hsla(205,40%,25%,0.4); height:6px; border-radius:3px; margin-top:0.4rem; }
+.acc-bar { height:6px; border-radius:3px; background:var(--primary); box-shadow:0 0 6px hsla(153,100%,50%,0.4); transition:width 1.2s ease; }
+.class-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(7rem,1fr)); gap:0.5rem; margin-top:0.5rem; }
+.class-item { font-size:0.6rem; color:var(--secondary); }
+.class-item span { color:var(--fg); }
+
+/* ── Text Enhancement Styles (matching all other project pages) ── */
+.detail-para {
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  color: hsla(205, 30%, 70%, 0.9);
+  border-left: 2px solid transparent;
+  padding-left: 1rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.3s ease, padding-left 0.3s ease;
+}
+.detail-para:hover {
+  border-left-color: hsla(153, 100%, 50%, 0.4);
+}
+
+/* Strong tags glow on hover */
+.detail-para strong {
+  color: var(--fg);
+  border-bottom: 1px solid hsla(153, 100%, 50%, 0.3);
+  padding-bottom: 1px;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+.detail-para strong:hover {
+  color: hsl(153, 100%, 60%);
+  text-shadow: 0 0 8px hsla(153, 100%, 50%, 0.5);
+  cursor: default;
+}
+
+/* First paragraph dropcap */
+.detail-para:first-of-type::first-letter {
+  float: left;
+  font-size: 3rem;
+  line-height: 1;
+  color: hsl(153, 100%, 50%);
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 0.5rem;
+  text-shadow: 0 0 20px hsla(153, 100%, 50%, 0.5);
+}
+
+/* Callout box for key highlights */
+.detail-callout {
+  border: 1px solid hsla(153, 100%, 50%, 0.25);
+  background: hsla(153, 100%, 50%, 0.04);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.8rem;
+  color: hsla(153, 100%, 70%, 0.85);
+  letter-spacing: 0.03em;
+  line-height: 1.7;
+  position: relative;
+}
+.detail-callout::before {
+  content: '// HIGHLIGHT';
+  display: block;
+  font-size: 0.6rem;
+  color: hsla(153, 100%, 50%, 0.5);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+}
+</style>
+
+</head>
+<body class="scanlines">
+<div id="scroll-progress"></div>
+<div id="page-transition"></div>
+<div id="cursor">
+  <svg id="cursor-svg" width="32" height="32" viewBox="0 0 32 32">
+    <circle cx="16" cy="16" r="1.5" fill="hsl(153,100%,50%)"/>
+    <line id="c-top"    x1="16" y1="12" x2="16" y2="7"  stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-bottom" x1="16" y1="20" x2="16" y2="25" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-left"   x1="12" y1="16" x2="7"  y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+    <line id="c-right"  x1="20" y1="16" x2="25" y2="16" stroke="hsl(153,100%,50%)" stroke-width="1.5"/>
+  </svg>
+</div>
+<canvas id="particle-canvas"></canvas>
+<nav id="navbar">
+  <div class="nav-inner">
+    <span style="color:var(--fg);font-size:0.95rem;letter-spacing:0.2em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600;">Muhammad Tayyab</span>
+    <a href="index.html" class="btn-resume" data-interactive style="text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;">&larr; BACK TO PORTFOLIO</a>
+  </div>
+</nav>
+<div style="padding:7rem 0 4rem;position:relative;z-index:10;">
+  <div class="container">
+    <div style="margin-bottom:3rem;">
+      <p class="section-tag">&gt;&gt; PROJECT_07 / ML_DATA</p>
+      <h1 class="detail-h1">FASHION-MNIST CLASSIFIER</h1>
+      <p style="color:var(--secondary);font-size:0.875rem;margin-bottom:1.5rem;">A complete ML pipeline classifying 10 fashion categories from the Fashion-MNIST dataset — featuring full EDA, three trained models (best: Random Forest 88.01%), per-class analysis, and a live Gradio interactive app.</p>
+      <div class="detail-tags"><span class="detail-tag">Python</span><span class="detail-tag">Scikit-learn</span><span class="detail-tag">Gradio</span><span class="detail-tag">Pandas</span><span class="detail-tag">NumPy</span><span class="detail-tag">Kaggle</span><span class="detail-tag">Machine Learning</span></div>
+    </div>
+
+    <div class="video-embed-wrap">
+      <iframe src="https://drive.google.com/file/d/1S84cKX4a53-VTR1ON6hNTyX8EF7z23xt/preview" title="Fashion-MNIST Walkthrough" frameborder="0" allow="autoplay" allowfullscreen></iframe>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <p class="detail-section-label">&gt;&gt; PROJECT_OVERVIEW</p>
+        <p class="detail-para">Fashion-MNIST Image Classification is a comprehensive machine learning project hosted as a reproducible Kaggle notebook. The project tackles the multi-class image classification problem using the Fashion-MNIST dataset — 70,000 grayscale 28×28 images across 10 clothing categories — progressing through a full end-to-end ML pipeline from exploratory data analysis to a live interactive Gradio web application where users can test the trained model in real time.</p>
+        <p class="detail-para">The notebook follows a rigorous, structured methodology: <strong>Section 1</strong> imports all required libraries (NumPy, Pandas, Matplotlib, Seaborn, Scikit-learn, Gradio). <strong>Section 2</strong> loads the Fashion-MNIST dataset and confirms structure — 60,000 training and 10,000 test samples across 10 classes. <strong>Section 3 (EDA)</strong> performs thorough exploratory analysis: class distribution charts, sample image grids per category, pixel intensity distributions, and heatmaps revealing visual patterns across the dataset.</p>
+        <p class="detail-para"><strong>Sections 4–6</strong> handle the data pipeline: pixel normalisation (scaling 0–255 to 0–1), flattening the 28×28 image matrices into 784-feature vectors for the classical ML models, and performing a stratified 80/20 train-test split across all 10 classes to ensure balanced representation in both sets.</p>
+        <p class="detail-para"><strong>Section 7</strong> is the modelling core — three distinct algorithms are trained and evaluated: <strong>Logistic Regression</strong>, <strong>K-Nearest Neighbors</strong>, and <strong>Random Forest</strong>. Each model is assessed with accuracy, precision, recall, and F1-score, plus a full per-class classification report across all 10 clothing categories. Charts are generated for each model's confusion matrix and per-class performance breakdown.</p>
+        <p class="detail-para">The <strong>Random Forest model achieved the highest accuracy at 88.01%</strong>, outperforming both Logistic Regression (85.26%) and K-Nearest Neighbors (85.45%). The strongest-performing classes were Trouser (0.98 F1), Bag (0.97 F1), and Sandal (0.97 F1), while Shirt proved the most challenging category across all three models. <strong>Section 12</strong> concludes with a deployed Gradio interactive app where users can upload any fashion image and receive an instant classification prediction from the trained model.</p>
+
+        <div class="detail-callout">
+          The <strong>Random Forest at 88.01% accuracy</strong> and the <strong>Gradio interactive deployment</strong> are the twin highlights — rigorous multi-model benchmarking combined with a live, usable product that takes the trained pipeline beyond a static notebook into a real-world classification tool.
+        </div>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; CHALLENGES</p>
+        <p class="detail-para">The most analytically interesting challenge was the persistent underperformance on the <strong>Shirt class</strong> — all three models struggled with it, reflecting the genuine visual ambiguity between shirts, T-shirts, and pullovers in greyscale 28×28 pixel space. Deciding which classical ML approach to use required understanding the trade-offs: Logistic Regression is fast and interpretable, KNN is non-parametric but computationally expensive at scale, and Random Forest handles non-linearity well but requires careful hyperparameter tuning. Building the Gradio app required integrating the trained model pipeline with a preprocessing function that correctly handles new input images through the same normalisation and flattening steps used during training.</p>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; OUTCOME</p>
+        <p class="detail-para">This project delivers a fully reproducible, well-documented ML pipeline that takes raw image data from exploration through to a deployed interactive application. The <strong>88.01% Random Forest accuracy</strong> on 10-class image classification demonstrates strong feature engineering and model selection skills, and the Gradio deployment shows the ability to take a trained model into a usable product rather than leaving it as a static notebook exercise.</p>
+
+        <p class="detail-section-label" style="margin-top:3rem;">&gt;&gt; MODEL_COMPARISON</p>
+        <table class="metrics-table">
+          <thead><tr><th>MODEL</th><th>ACCURACY</th><th>PRECISION</th><th>RECALL</th><th>F1-SCORE</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Logistic Regression</td><td>85.26%</td><td>0.8516</td><td>0.8526</td><td>0.8519</td></tr>
+            <tr><td class="model-name">K-Nearest Neighbors</td><td>85.45%</td><td>0.8577</td><td>0.8545</td><td>0.8540</td></tr>
+            <tr><td class="model-name best">Random Forest ★ Best</td><td class="best">88.01%</td><td class="best">0.8795</td><td class="best">0.8801</td><td class="best">0.8786</td></tr>
+          </tbody>
+        </table>
+
+        <p class="detail-section-label" style="margin-top:2rem;">&gt;&gt; ACCURACY_BARS</p>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:2rem;">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.65rem;"><span style="color:var(--fg)">Logistic Regression</span><span style="color:var(--primary)">85.26%</span></div><div class="acc-bar-wrap"><div class="acc-bar" data-width="85.26%" style="width:0%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.65rem;"><span style="color:var(--fg)">K-Nearest Neighbors</span><span style="color:var(--primary)">85.45%</span></div><div class="acc-bar-wrap"><div class="acc-bar" data-width="85.45%" style="width:0%"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;font-size:0.65rem;"><span style="color:var(--fg);font-weight:600;">Random Forest</span><span style="color:var(--primary);font-weight:600;">88.01% ★</span></div><div class="acc-bar-wrap"><div class="acc-bar" data-width="88.01%" style="width:0%;box-shadow:0 0 10px hsla(153,100%,50%,0.6);"></div></div></div>
+        </div>
+
+        <p class="detail-section-label" style="margin-top:2rem;">&gt;&gt; PER_CLASS_PERFORMANCE (Random Forest — Best Model)</p>
+        <table class="metrics-table" style="margin-bottom:2rem;">
+          <thead><tr><th>CLASS</th><th>PRECISION</th><th>RECALL</th><th>F1</th><th>SUPPORT</th></tr></thead>
+          <tbody>
+            <tr><td>T-shirt/Top</td><td>0.81</td><td>0.86</td><td>0.84</td><td>1,200</td></tr>
+            <tr><td>Trouser</td><td>0.99</td><td>0.97</td><td class="best">0.98</td><td>1,200</td></tr>
+            <tr><td>Pullover</td><td>0.78</td><td>0.81</td><td>0.79</td><td>1,200</td></tr>
+            <tr><td>Dress</td><td>0.88</td><td>0.91</td><td>0.90</td><td>1,200</td></tr>
+            <tr><td>Coat</td><td>0.76</td><td>0.83</td><td>0.79</td><td>1,200</td></tr>
+            <tr><td>Sandal</td><td>0.98</td><td>0.96</td><td>0.97</td><td>1,200</td></tr>
+            <tr><td>Shirt</td><td>0.74</td><td>0.59</td><td>0.66</td><td>1,200</td></tr>
+            <tr><td>Sneaker</td><td>0.93</td><td>0.95</td><td>0.94</td><td>1,200</td></tr>
+            <tr><td>Bag</td><td>0.97</td><td>0.97</td><td>0.97</td><td>1,200</td></tr>
+            <tr><td>Ankle Boot</td><td>0.95</td><td>0.94</td><td>0.95</td><td>1,200</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="detail-sidebar-box">
+        <p class="detail-section-label">&gt;&gt; KEY_FEATURES</p>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Full EDA with class distribution &amp; image grids</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Data normalisation &amp; 784-feature flattening</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Stratified 80/20 train-test split</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Logistic Regression — 85.26% accuracy</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>K-Nearest Neighbors — 85.45% accuracy</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Random Forest — 88.01% accuracy (best)</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Per-class F1 analysis across 10 categories</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Confusion matrix visualisations</div>
+        <div class="feature-item"><span class="feature-arrow">&#9656;</span>Gradio interactive classification app</div>
+        <hr class="sidebar-divider"/>
+        <p class="detail-section-label">&gt;&gt; TECH_STACK</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+          <span class="detail-tag">Python</span>
+          <span class="detail-tag">Scikit-learn</span>
+          <span class="detail-tag">Random Forest</span>
+          <span class="detail-tag">Logistic Regression</span>
+          <span class="detail-tag">KNN</span>
+          <span class="detail-tag">Gradio</span>
+          <span class="detail-tag">Pandas</span>
+          <span class="detail-tag">NumPy</span>
+          <span class="detail-tag">Matplotlib</span>
+        </div>
+        <hr class="sidebar-divider"/>
+        <p class="detail-section-label">&gt;&gt; LINKS</p>
+        <a href="https://drive.google.com/file/d/1sSQHpXJQqOVbaZWsmTb13K0uWrcwbZc4/view?usp=sharing"
+          target="_blank" rel="noopener noreferrer"
+          class="detail-link-btn" data-interactive style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          VIEW LIVE PROJECT
+        </a>
+        <a href="https://drive.google.com/file/d/1sSQHpXJQqOVbaZWsmTb13K0uWrcwbZc4/view?usp=sharing"
+          target="_blank" rel="noopener noreferrer"
+          class="detail-link-btn" data-interactive style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          VIEW SOURCE CODE
+        </a>
+      </div>
+    </div>
+
+    <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid hsla(205,40%,50%,0.2);">
+      <a href="index.html" style="font-size:0.75rem;color:var(--primary);font-family:'JetBrains Mono',monospace;letter-spacing:0.15em;text-decoration:none;" data-interactive onmouseover="this.style.textShadow='0 0 10px hsla(153,100%,50%,0.5)'" onmouseout="this.style.textShadow='none'">&lt;&lt; RETURN TO ALL PROJECTS</a>
+    </div>
+  </div>
+</div>
+<button id="back-to-top" data-interactive title="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+<script>
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('scroll-progress').style.width=(d>0?(window.scrollY/d)*100:0)+'%';
+  document.getElementById('back-to-top').classList.toggle('visible',window.scrollY>400);
+},{passive:true});
+(function(){const c=document.getElementById('particle-canvas'),x=c.getContext('2d');let p=[];function r(){c.width=window.innerWidth;c.height=window.innerHeight;}r();window.addEventListener('resize',r,{passive:true});const n=Math.min(60,Math.floor(window.innerWidth/22));for(let i=0;i<n;i++)p.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,s:Math.random()*1.5+.5});function d(){x.clearRect(0,0,c.width,c.height);p.forEach((a,i)=>{a.x+=a.vx;a.y+=a.vy;if(a.x<0)a.x=c.width;if(a.x>c.width)a.x=0;if(a.y<0)a.y=c.height;if(a.y>c.height)a.y=0;x.beginPath();x.arc(a.x,a.y,a.s,0,Math.PI*2);x.fillStyle='rgba(0,255,136,0.3)';x.fill();for(let j=i+1;j<p.length;j++){const dx=a.x-p[j].x,dy=a.y-p[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){x.beginPath();x.moveTo(a.x,a.y);x.lineTo(p[j].x,p[j].y);x.strokeStyle=`rgba(0,255,136,${.08*(1-dist/120)})`;x.lineWidth=.5;x.stroke();}}});requestAnimationFrame(d);}d();})();
+(function(){const cur=document.getElementById('cursor'),svg=document.getElementById('cursor-svg');let h=false;window.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});window.addEventListener('mouseover',e=>{const nh=!!e.target.closest('a,button,[role="button"],[data-interactive]');if(nh===h)return;h=nh;const sz=h?48:32,ll=h?8:5,c=sz/2;svg.setAttribute('width',sz);svg.setAttribute('height',sz);svg.setAttribute('viewBox',`0 0 ${sz} ${sz}`);svg.querySelector('circle').setAttribute('cx',c);svg.querySelector('circle').setAttribute('cy',c);const co={top:[c,c-4,c,c-4-ll],bottom:[c,c+4,c,c+4+ll],left:[c-4,c,c-4-ll,c],right:[c+4,c,c+4+ll,c]};Object.entries(co).forEach(([id,[x1,y1,x2,y2]])=>{const el=document.getElementById('c-'+id);el.setAttribute('x1',x1);el.setAttribute('y1',y1);el.setAttribute('x2',x2);el.setAttribute('y2',y2);});});})();
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('page-transition');
+  ov.style.opacity='1'; ov.style.transition='opacity 0.4s ease';
+  requestAnimationFrame(()=>{ ov.style.opacity='0'; });
+  document.querySelectorAll('.acc-bar[data-width]').forEach(b=>{
+    setTimeout(()=>{ b.style.width=b.dataset.width; },400);
+  });
+});
+document.querySelectorAll('a[href="index.html"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    const ov=document.getElementById('page-transition');
+    ov.style.transition='opacity 0.35s ease'; ov.style.opacity='1';
+    setTimeout(()=>window.location.href='index.html',360);
+  });
+});
+</script>
+</body>
+</html>
